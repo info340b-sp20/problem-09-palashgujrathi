@@ -2,6 +2,7 @@ import React, { Component } from 'react'; //import React Component
 import {AboutPage, ResourcesPage} from './About';
 import AdoptPage from './AdoptPet';
 import './App.css'; //import css file!
+import { BrowserRouter as Router, Route, Switch, Link, Redirect, NavLink} from 'react-router-dom'
 
 import SAMPLE_DOGS from './dogs.json'; //a sample list of dogs (model)
 
@@ -17,11 +18,15 @@ class App extends Component {
   }
 
   render() {
+    function petRenderList(props) 
+    {
+      return <PetList pets = {props.pets} />;
+    }
     return (
       <div>
         <header className="jumbotron jumbotron-fluid py-4">
           <div className="container">
-            <h1>Adopt a Pet</h1>
+            <h1><Link to="/">Adopt a Pet</Link></h1>
           </div>
         </header>
       
@@ -31,7 +36,19 @@ class App extends Component {
               <AboutNav />
             </div>
             <div className="col-9">
-              <PetList pets={this.state.pets} />
+              <Switch>
+                  <Route exact path="/" render = {() => 
+                    {
+                      return petRenderList(this.state);
+                    }} />
+                  <Route path="/about" component={AboutPage} />
+                  <Route path="/resources" component={ResourcesPage} />
+                  <Route path="/adopt/:petName" component={AdoptPage} />
+                  <Redirect to="/" render = {() => 
+                    {
+                      return petRenderList(this.state);
+                    }}/>
+                </Switch>
             </div>
           </div>
         </main>
@@ -50,9 +67,9 @@ class AboutNav extends Component {
       <nav id="aboutLinks">
         <h2>About</h2>
         <ul className="list-unstyled">
-          <li><a href="/">Adopt a Pet</a></li>
-          <li><a href="/about">About Us</a></li>
-          <li><a href="/resources">Resources</a></li>
+          <li><NavLink exact to="/" activeClassName="activeLink">Adopt a Pet</NavLink></li>
+          <li><NavLink to="/about" activeClassName="activeLink">About Us</NavLink></li>
+          <li><NavLink to="/resources" activeClassName="activeLink">Resources</NavLink></li>
         </ul>
       </nav>
     );
@@ -80,15 +97,20 @@ class PetList extends Component {
 class PetCard extends Component {
   constructor(props){
     super(props);
-    this.state = {};
+    this.state = {redirectPet: false};
   }
 
   handleClick = () => {
+    this.setState({redirectPet: true});
     console.log("You clicked on", this.props.pet.name);
   }
 
   render() {
     let pet = this.props.pet; //shortcut
+    if(this.state.redirectPet)
+    {
+      return (<Redirect push to={"/adopt/" + pet.name}></Redirect>);
+    }
     return (
       <div className="card clickable" onClick={this.handleClick}>
         <img className="card-img-top" src={pet.images[0]} alt={pet.name} />
